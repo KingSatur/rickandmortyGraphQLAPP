@@ -8,4 +8,13 @@ export class Character {
   location?: any;
   image?: any;
   isFavorite?: boolean;
+
+  static fromJSON(data = {}): Character {
+    let character = new Character();
+    Object.keys(data).forEach((m) => {
+      character[m] = data?.[m];
+    });
+
+    return character;
+  }
 }

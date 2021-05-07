@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { BehaviorSubject } from 'rxjs';
 import { take, tap } from 'rxjs/operators';
-import { Episode } from '../models/episode.model';
-import { Character } from '../models/character.model';
-import { DataResponse } from '../models/api-response.interface';
+import { Episode } from '@shared/models/episode.model';
+import { Character } from '@shared/models/character.model';
+import { DataResponse } from '@shared/models/api-response.interface';
+import { LocalstorageService } from './localstorage.service';
 
 const QUERY = gql`
   {
@@ -45,7 +46,10 @@ export class DataService {
   private charactersSubject = new BehaviorSubject<Character[]>(null);
   characters$ = this.charactersSubject.asObservable();
 
-  constructor(private apollo: Apollo) {
+  constructor(
+    private apollo: Apollo,
+    private localStorageService: LocalstorageService
+  ) {
     this.getDataApi();
   }
 
@@ -59,9 +63,21 @@ export class DataService {
         tap(({ data }) => {
           const { characters, episodes } = data;
           this.episodesSubject.next(episodes?.results);
-          this.charactersSubject.next(characters?.results);
+          // this.charactersSubject.next(
+          //   characters?.results?.map((m) => Character.fromJSON(m))
+          // );
+          this.parseCharacterData(characters?.results);
         })
       )
       .subscribe();
+  }
+
+  private parseCharacterData(characters: Character[]) {
+    const currentFavs = this.localStorageService.getFavorites();
+    const filterCharacters = characters?.map((m) => ({
+      ...m,
+      isFavorite: currentFavs?.some((old) => old?.id === m?.id),
+    }));
+    this.charactersSubject.next(filterCharacters);
   }
 }
