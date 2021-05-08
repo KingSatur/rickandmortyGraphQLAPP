@@ -1,7 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
-import { BehaviorSubject } from 'rxjs';
-import { pluck, take, tap, withLatestFrom } from 'rxjs/operators';
+import { BehaviorSubject, empty } from 'rxjs';
+import {
+  find,
+  mergeMap,
+  pluck,
+  take,
+  tap,
+  withLatestFrom,
+} from 'rxjs/operators';
 import { Episode } from '@shared/models/episode.model';
 import { Character } from '@shared/models/character.model';
 import { DataResponse } from '@shared/models/api-response.interface';
@@ -41,9 +48,9 @@ const QUERY = gql`
   providedIn: 'root',
 })
 export class DataService {
-  private episodesSubject = new BehaviorSubject<Episode[]>(null);
+  private episodesSubject = new BehaviorSubject<Episode[]>([]);
   episodes$ = this.episodesSubject.asObservable();
-  private charactersSubject = new BehaviorSubject<Character[]>(null);
+  private charactersSubject = new BehaviorSubject<Character[]>([]);
   characters$ = this.charactersSubject.asObservable();
 
   constructor(
@@ -115,5 +122,12 @@ export class DataService {
       isFavorite: currentFavs?.some((old) => old?.id === m?.id),
     }));
     this.charactersSubject.next(filterCharacters);
+  }
+
+  public getCharacterById(id: number) {
+    return this.characters$.pipe(
+      mergeMap((characters) => characters),
+      find((character) => character?.id === id)
+    );
   }
 }

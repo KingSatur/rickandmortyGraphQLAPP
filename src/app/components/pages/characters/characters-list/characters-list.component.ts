@@ -2,7 +2,6 @@ import { DOCUMENT } from '@angular/common';
 import { Component, HostListener, Inject, OnInit } from '@angular/core';
 import { DataService } from '@app/shared/services/data.service';
 import { LocalstorageService } from '@shared/services/localstorage.service';
-import { gql } from 'apollo-angular';
 
 @Component({
   selector: 'app-characters-list',
@@ -16,7 +15,6 @@ import { gql } from 'apollo-angular';
   >
     <app-characters-card
       *ngFor="let character of character$ | async"
-      (toggleFav)="localStorageService.addOrRemove(character)"
       [character]="character"
     ></app-characters-card>
     <button *ngIf="showButton" (click)="onScrollTop()" class="button">⬆</button>
@@ -54,6 +52,6 @@ export class CharactersListComponent implements OnInit {
   onScrollTop(): void {
     this.document.documentElement.scrollTop = 0;
     this.pageNum = 0;
-    // this.dataService.getCharactersByPage(this.pageNum);
+    this.dataService.getCharactersByPage(this.pageNum);
   }
 }
