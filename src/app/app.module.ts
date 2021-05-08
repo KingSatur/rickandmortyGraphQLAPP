@@ -5,10 +5,12 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { GraphQLModule } from './graphql.module';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HeaderModule } from '@shared/components/header/header.module';
 import { RouterModule } from '@angular/router';
 import { ToastrModule } from 'ngx-toastr';
+import { SpinnerModule } from '@shared/components/spinner/spinner.module';
+import { SpinnerInterceptor } from '@shared/interceptors/spinner.interceptor';
 
 @NgModule({
   declarations: [AppComponent],
@@ -21,8 +23,15 @@ import { ToastrModule } from 'ngx-toastr';
     RouterModule,
     ToastrModule.forRoot(),
     BrowserAnimationsModule,
+    SpinnerModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: SpinnerInterceptor,
+      multi: true,
+    },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
