@@ -2,6 +2,17 @@ section.character__list {
   display: flex;
   flex-wrap: wrap;
   height: auto;
+  justify-content: center;
+}
+
+.not-result {
+  display: flex;
+  flex-direction: column;
+
+  .title {
+    font-size: 2rem;
+    color: white;
+  }
 }
 
 .button {

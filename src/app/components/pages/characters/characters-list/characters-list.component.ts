@@ -5,20 +5,31 @@ import { LocalstorageService } from '@shared/services/localstorage.service';
 
 @Component({
   selector: 'app-characters-list',
-  template: ` <section
-    class="character__list"
-    infinite-scroll
-    [infiniteScrollDistance]="1"
-    [infiniteScrollUpDistance]="0"
-    [infiniteScrollThrottle]="5"
-    (scrolled)="onScrollDown()"
-  >
-    <app-characters-card
-      *ngFor="let character of character$ | async"
-      [character]="character"
-    ></app-characters-card>
-    <button *ngIf="showButton" (click)="onScrollTop()" class="button">⬆</button>
-  </section>`,
+  template: ` <app-search (onClear)="dataService?.getDataApi()"></app-search>
+    <section
+      class="character__list"
+      infinite-scroll
+      [infiniteScrollDistance]="1"
+      [infiniteScrollUpDistance]="0"
+      [infiniteScrollThrottle]="5"
+      (scrolled)="onScrollDown()"
+    >
+      <ng-container *ngIf="character$ | async as characters; else showEmpty">
+        <app-characters-card
+          *ngFor="let character of characters"
+          [character]="character"
+        ></app-characters-card>
+      </ng-container>
+      <ng-template #showEmpty>
+        <div class="not-result">
+          <h1 class="title">Not results</h1>
+          <img src="assets/imgs/404.jpeg" alt="404" />
+        </div>
+      </ng-template>
+      <button *ngIf="showButton" (click)="onScrollTop()" class="button">
+        ⬆
+      </button>
+    </section>`,
   styleUrls: ['./characters-list.component.scss'],
 })
 export class CharactersListComponent implements OnInit {
@@ -28,7 +39,7 @@ export class CharactersListComponent implements OnInit {
   public pageNum: number = 1;
 
   constructor(
-    private dataService: DataService,
+    public dataService: DataService,
     public localStorageService: LocalstorageService,
     @Inject(DOCUMENT) private document: Document
   ) {}

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
-import { BehaviorSubject, empty } from 'rxjs';
+import { BehaviorSubject, empty, of } from 'rxjs';
 import {
+  catchError,
   find,
   mergeMap,
   pluck,
@@ -60,7 +61,7 @@ export class DataService {
     this.getDataApi();
   }
 
-  private getDataApi() {
+  public getDataApi() {
     this.apollo
       .watchQuery<DataResponse>({
         query: QUERY,
@@ -122,6 +123,51 @@ export class DataService {
       isFavorite: currentFavs?.some((old) => old?.id === m?.id),
     }));
     this.charactersSubject.next(filterCharacters);
+  }
+
+  filterData(valueSearch: string): void {
+    const QUERY_BY_NAME = gql`
+      query($name: String) {
+        characters(filter: { name: $name }) {
+          info {
+            count
+          }
+          results {
+            name
+            id
+            status
+            species
+            gender
+            origin {
+              dimension
+            }
+            location {
+              name
+            }
+            image
+          }
+        }
+      }
+    `;
+    this.apollo
+      .watchQuery<any>({
+        query: QUERY_BY_NAME,
+        variables: {
+          name: valueSearch,
+        },
+      })
+      .valueChanges.pipe(
+        take(1),
+        pluck('data', 'characters'),
+        tap((apiResponse) =>
+          this.parseCharacterData([...apiResponse?.results])
+        ),
+        catchError((error) => {
+          this.charactersSubject.next(null);
+          return of(error);
+        })
+      )
+      .subscribe();
   }
 
   public getCharacterById(id: number) {
