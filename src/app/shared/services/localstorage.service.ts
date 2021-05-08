@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Character } from '@shared/models/character.model';
+import { ToastrService } from 'ngx-toastr';
 const MY_FAVORITE = 'Favorites';
 @Injectable({
   providedIn: 'root',
@@ -9,7 +10,7 @@ export class LocalstorageService {
   private favoritesCharactersSubject = new BehaviorSubject<Character[]>(null);
   favoritesCharacters$ = this.favoritesCharactersSubject.asObservable();
 
-  constructor() {
+  constructor(private toastrService: ToastrService) {
     this.initiateStorage();
   }
 
@@ -25,7 +26,7 @@ export class LocalstorageService {
       this.favoritesCharactersSubject.next(favoritesCharacters);
       return favoritesCharacters;
     } catch (error) {
-      console.error(error);
+      this.toastrService.error(`there was an error ${JSON.stringify(error)}`);
     }
   }
 
@@ -45,27 +46,35 @@ export class LocalstorageService {
         JSON.stringify([...currentFavs, character])
       );
       this.favoritesCharactersSubject.next([...currentFavs, character]);
+      this.toastrService.success(
+        `${character?.name} has been added to your favorites`
+      );
     } catch (error) {
-      console.error(error);
+      this.toastrService.error(`there was an error ${JSON.stringify(error)}`);
     }
   }
 
   private removeFromFavorite(id): void {
-    const currentFavs = this.getFavorites();
-    localStorage.setItem(
-      MY_FAVORITE,
-      JSON.stringify(currentFavs?.filter((m) => m?.id !== id))
-    );
-    this.favoritesCharactersSubject.next(
-      currentFavs?.filter((m) => m?.id !== id)
-    );
+    try {
+      const currentFavs = this.getFavorites();
+      localStorage.setItem(
+        MY_FAVORITE,
+        JSON.stringify(currentFavs?.filter((m) => m?.id !== id))
+      );
+      this.favoritesCharactersSubject.next(
+        currentFavs?.filter((m) => m?.id !== id)
+      );
+      this.toastrService.success(`has been deleted to your favorites`);
+    } catch (error) {
+      this.toastrService.error(`there was an error ${JSON.stringify(error)}`);
+    }
   }
 
   clearStorage() {
     try {
       localStorage.clear();
     } catch (error) {
-      console.log(error);
+      this.toastrService.error(`there was an error ${JSON.stringify(error)}`);
     }
   }
 }
